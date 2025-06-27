@@ -1,17 +1,79 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState } from 'react';
+
+
+import LoadingState from '@/app/components/LoadingState';
+import ErrorState from '@/app/components/ErrorState';
 
 export default function Home() {
+  const [initialized, setInitialized] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Import TWA SDK dynamically to avoid SSR issues
+    const initTelegram = async () => {
+      try {
+        // Dynamic import of the TWA SDK
+        const WebApp = (await import('@twa-dev/sdk')).default;
+        
+        // Check if running within Telegram
+        const isTelegram = WebApp.isExpanded !== undefined;
+        
+        if (isTelegram) {
+          // Initialize Telegram Web App
+          WebApp.ready();
+          WebApp.expand();
+          
+          // Get user ID from initData
+          if (WebApp.initDataUnsafe && WebApp.initDataUnsafe.user) {
+            // Access user data directly from the WebApp object
+            const user = WebApp.initDataUnsafe.user;
+            setUserId(user.id?.toString() || '');
+          } else {
+            setError('No user data available from Telegram');
+            setIsLoading(false);
+          }
+        } else {
+          // Not in Telegram, set an error message
+          setError('This application can only be accessed from within Telegram');
+          setIsLoading(false);
+        }
+
+        setInitialized(true);
+      } catch (e) {
+        console.error('Failed to initialize Telegram Web App:', e);
+        setError('Failed to initialize Telegram Web App');
+        setInitialized(true);
+        setIsLoading(false);
+      }
+    };
+
+    initTelegram();
+  }, []);
+
+
+  // Handle retry on error
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
+
+
+  // Loading state
+  if (!initialized || isLoading) {
+    return <LoadingState />;
+  }
+
+  // Error state (including not in Telegram)
+  if (error) {
+    return <ErrorState error={error} onRetry={handleRetry} />;
+  }
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
         <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
@@ -32,13 +94,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
+
             Deploy now
           </a>
           <a
@@ -58,13 +114,7 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
+
           Learn
         </a>
         <a
@@ -73,13 +123,7 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
+
           Examples
         </a>
         <a
@@ -88,13 +132,6 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
           Go to nextjs.org →
         </a>
       </footer>
