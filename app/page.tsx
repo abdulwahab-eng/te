@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion';
-import { Plane, ShoppingCart, Rocket, CheckCircle } from 'lucide-react';
-import { cn } from '@/app/lib/utils';
-import { InteractiveHoverButton } from '@/app/components/magicui/interactive-hover-button';
-import LoadingState from '@/app/components/LoadingState';
-import ErrorState from '@/app/components/ErrorState';
+import { ShoppingCart, Rocket, CheckCircle } from 'lucide-react';
+import { InteractiveHoverButton } from '@/components/magicui/interactive-hover-button';
+import LoadingState from '@/components/LoadingState';
+import ErrorState from '@/components/ErrorState';
 
 export default function Home() {
   // Telegram state
@@ -64,7 +63,7 @@ export default function Home() {
           setUserId(user.id.toString());
           // Start success animation sequence
           setStep(1);
-          const controls = animate(progress, 1, {
+          animate(progress, 1, {
             duration: 1.5,
             ease: "easeInOut",
             onComplete: () => {
@@ -85,7 +84,7 @@ export default function Home() {
     };
 
     initTelegram();
-  }, []);
+  }, [progress]);
 
   // Handle retry
   const handleRetry = () => {
@@ -197,7 +196,9 @@ export default function Home() {
                 className="bg-gray-800 rounded-xl p-6 shadow-lg"
                 whileHover={{ scale: 1.02 }}
               >
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 cursor-pointer"
+                  onClick={() => window.location.href = '/dashboard'}
+                >
                   <ShoppingCart className="text-blue-500" />
                   Featured Products
                 </h3>
